@@ -48,8 +48,10 @@ public class AuthControllers {
 	
 	@PostMapping(path = "/auth/api/signin")
 	public ResponseEntity<AuthTokenResponse> signInUser(@RequestBody SignInRequest signInRequest){
-	    Authentication authentication = authenticationManager.authenticate(
-	    		new UsernamePasswordAuthenticationToken(signInRequest.getUserName(), signInRequest.getPassWord()));
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
+				new UsernamePasswordAuthenticationToken(signInRequest.getUserName(), signInRequest.getPassWord());
+		
+	    Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 	   
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	    
@@ -58,8 +60,10 @@ public class AuthControllers {
 	    
 	    AuthUser user = repo.findByName(signInRequest.getUserName());
 	    if(user != null) {
-	    	user.getToken().setAccessToken(jwtAccessToken);
-	    	user.getToken().setRefreshToken(jwtRefreshToken);
+	    	AuthToken authToken = new AuthToken();
+	    	authToken.setAccessToken(jwtAccessToken);
+	    	authToken.setRefreshToken(jwtRefreshToken);
+	    	user.setToken(authToken);
 	    	repo.save(user);
 	    AuthTokenResponse authTokenResponse = new AuthTokenResponse(
 	    		user.getName()
